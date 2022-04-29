@@ -1,4 +1,4 @@
-import express from 'express';
+import express,{ Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 import { error } from 'console';
@@ -18,14 +18,6 @@ import { resolve } from 'bluebird';
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
 
-  // middleware checking url and returing message to try filteredimage url
-  app.use(function (req, res, next) {
-    if (req.path != '/filteredimage') {
-      res.send("try GET /filteredimage?image_url={{}}")
-    }
-    next()
-  })
-
   // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
   // endpoint to filter an image from a public url.
@@ -34,7 +26,7 @@ import { resolve } from 'bluebird';
   //    1. validate the image_url query
   //    2. call filterImageFromURL(image_url) to filter the image
   //    3. send the resulting file in the response
-  //    4. deletes any files on the server on finish of the response
+  //    4. deletes any files on the server on finish of the respons
   // QUERY PARAMATERS
   //    image_url: URL of a publicly accessible image
   // RETURNS
@@ -43,9 +35,9 @@ import { resolve } from 'bluebird';
   /**************************************************************************** */
 
   //! END @TODO1
-  app.get("/filteredimage", async (req, res) => {
+  app.get("/filteredimage/", async (req : Request , res : Response) => {
     //
-    let { image_url } = req.query;
+    let image_url: string = req.query.image_url;
 
     // return error if parameter is missing
     if (!image_url) {
@@ -68,9 +60,9 @@ import { resolve } from 'bluebird';
 
       } else {
         try {
-          const image_response = await filterImageFromURL(image_url)
+          let image_response = await filterImageFromURL(image_url)
           if (image_response != "no image found") {
-            res.status(200).sendFile(image_response, async callback=>{
+            res.status(200).sendFile(image_response, async () => {
               await deleteLocalFiles([image_response])
             })
           } else {
@@ -86,7 +78,7 @@ import { resolve } from 'bluebird';
   });
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req : Request, res : Response ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
   
